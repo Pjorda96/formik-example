@@ -3,124 +3,117 @@ import { useFormik } from "formik";
 import * as Yup from 'yup';
 import "./index.css";
 
-// A custom validation function. This must return an object
-// which keys are symmetrical to our values/initialValues
-// const validate = values => {
-//   const errors = {};
-//   if (!values.firstName) {
-//     errors.firstName = 'Required';
-//   } else if (values.firstName.length > 15) {
-//     errors.firstName = 'Must be 15 characters or less';
-//   }
+const enums = {
+  firstName: 'firstName',  
+  lastName: 'lastName',  
+  email: 'email',
+  toggle: 'toggle',
+  checked: 'checked',
+}
 
-//   if (!values.lastName) {
-//     errors.lastName = 'Required';
-//   } else if (values.lastName.length > 20) {
-//     errors.lastName = 'Must be 20 characters or less';
-//   }
-
-//   if (!values.email) {
-//     errors.email = 'Required';
-//   } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
-//     errors.email = 'Invalid email address';
-//   }
-
-//   return errors;
-// };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const SignupForm = () => {
-  // Pass the useFormik() hook initial form values, a validate function that will be called when
-  // form values change or fields are blurred, and a submit function that will
-  // be called when the form is submitted
   const formik = useFormik({
     initialValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
+      [enums.firstName]: '',
+      [enums.lastName]: '',
+      [enums.email]: '',
+      [enums.toggle]: false,
+      [enums.checked]: [],
     },
-    // validate,
     validationSchema: Yup.object({
-      firstName: Yup.string()
+      [enums.firstName]: Yup.string()
         .max(15, 'Must be 15 characters or less')
         .required('Required'),
-      lastName: Yup.string()
+      [enums.lastName]: Yup.string()
         .max(20, 'Must be 20 characters or less')
         .required('Required'),
-      email: Yup.string().email('Invalid email address').required('Required'),
+      [enums.email]: Yup.string().email('Invalid email address').required('Required'),
     }),
 
-    onSubmit: values => {
-      alert(JSON.stringify(values, null, 2));
+    onSubmit: async (values) => {
+      await sleep(500);
+      console.log(`values`, values)
     },
   });
+
   return (
-    // <form onSubmit={formik.handleSubmit}>
-    //   <label htmlFor="firstName">First Name</label>
-    //   <input
-    //     id="firstName"
-    //     name="firstName"
-    //     type="text"
-    //     onChange={formik.handleChange}
-    //     onBlur={formik.handleBlur}
-    //     value={formik.values.firstName}
-    //   />
-    //   {formik.touched.firstName && formik.errors.firstName ? (
-    //     <div>{formik.errors.firstName}</div>
-    //   ) : null}
-
-    //   <label htmlFor="lastName">Last Name</label>
-    //   <input
-    //     id="lastName"
-    //     name="lastName"
-    //     type="text"
-    //     onChange={formik.handleChange}
-    //     onBlur={formik.handleBlur}
-    //     value={formik.values.lastName}
-    //   />
-    //   {formik.touched.lastName && formik.errors.lastName ? (
-    //     <div>{formik.errors.lastName}</div>
-    //   ) : null}
-
-    //   <label htmlFor="email">Email Address</label>
-    //   <input
-    //     id="email"
-    //     name="email"
-    //     type="email"
-    //     onChange={formik.handleChange}
-    //     onBlur={formik.handleBlur}
-    //     value={formik.values.email}
-    //   />
-    //   {formik.touched.email && formik.errors.email ? (
-    //     <div>{formik.errors.email}</div>
-    //   ) : null}
-
-    //   <button type="submit">Submit</button>
-    // </form>
     <form onSubmit={formik.handleSubmit}>
-       <label htmlFor="firstName">First Name</label>
-       <input
-         id="firstName"
-         type="text"
-         {...formik.getFieldProps('firstName')}
-       />
-       {formik.touched.firstName && formik.errors.firstName ? (
-         <div>{formik.errors.firstName}</div>
-       ) : null}
- 
-       <label htmlFor="lastName">Last Name</label>
-       <input id="lastName" type="text" {...formik.getFieldProps('lastName')} />
-       {formik.touched.lastName && formik.errors.lastName ? (
-         <div>{formik.errors.lastName}</div>
-       ) : null}
- 
-       <label htmlFor="email">Email Address</label>
-       <input id="email" type="email" {...formik.getFieldProps('email')} />
-       {formik.touched.email && formik.errors.email ? (
-         <div>{formik.errors.email}</div>
-       ) : null}
- 
-       <button type="submit">Submit</button>
-     </form>
+      <label htmlFor={enums.firstName}>First Name</label>
+      <input
+        // id={enums.firstName}
+        type="text"
+        {...formik.getFieldProps(enums.firstName)}
+      />
+      {formik.touched[enums.firstName] && formik.errors[enums.firstName] ? (
+        <div>{formik.errors[enums.firstName]}</div>
+      ) : null}
+
+      <label htmlFor={enums.lastName}>Last Name</label>
+      <input
+        // id={enums.lastName}
+        type="text"
+        {...formik.getFieldProps(enums.lastName)}
+      />
+      {formik.touched[enums.lastName] && formik.errors[enums.lastName] ? (
+        <div>{formik.errors[enums.lastName]}</div>
+      ) : null}
+
+      <label htmlFor={enums.email}>Email Address</label>
+      <input
+        // id={enums.email}
+        type="email"
+        {...formik.getFieldProps(enums.email)}
+      />
+      {formik.touched[enums.email] && formik.errors[enums.email] ? (
+        <div>{formik.errors[enums.email]}</div>
+      ) : null}
+
+      <label>
+        <input
+          // id={enums.toggle}
+          type="checkbox"
+          {...formik.getFieldProps(enums.toggle)}
+        />
+        Toggle
+      </label>
+      
+      <div role="group" aria-labelledby="checkbox-group">
+        <label>
+          <input
+            // id={enums.checked}
+            type="checkbox"
+            name={enums.checked}
+            value="One"
+            onChange={formik.handleChange}
+          />
+          One
+        </label>
+        <label>
+          <input
+            // id={enums.checked}
+            type="checkbox"
+            name={enums.checked}
+            value="Two"
+            onChange={formik.handleChange}
+          />
+          Two
+        </label>
+        <label>
+          <input
+            // id={enums.checked}
+            type="checkbox"
+            name={enums.checked}
+            value="Three"
+            onChange={formik.handleChange}
+          />
+          Three
+        </label>
+      </div>
+
+      <button type="submit" disabled={formik.isSubmitting}>Submit</button>
+    </form>
   );
 };
 
