@@ -9,6 +9,7 @@ const enums = {
   email: 'email',
   toggle: 'toggle',
   checked: 'checked',
+  picked: 'picked',
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -21,6 +22,7 @@ const SignupForm = () => {
       [enums.email]: '',
       [enums.toggle]: false,
       [enums.checked]: [],
+      [enums.picked]: '',
     },
     validationSchema: Yup.object({
       [enums.firstName]: Yup.string()
@@ -30,6 +32,8 @@ const SignupForm = () => {
         .max(20, 'Must be 20 characters or less')
         .required('Required'),
       [enums.email]: Yup.string().email('Invalid email address').required('Required'),
+      [enums.checked]: Yup.array().min(1, 'Al menos 1').max(2, 'Como máximo 2'),
+      [enums.picked]: Yup.string().required('Required'),
     }),
 
     onSubmit: async (values) => {
@@ -110,6 +114,38 @@ const SignupForm = () => {
           />
           Three
         </label>
+
+        {formik.touched[enums.checked] && formik.errors[enums.checked] ? (
+          <div>{formik.errors[enums.checked]}</div>
+        ) : null}
+      </div>
+
+      <div role="group" aria-labelledby="my-radio-group">
+        <label>
+          <input
+            // id={enums.picked}
+            type="radio"
+            name={enums.picked}
+            value="One"
+            onChange={formik.handleChange}
+          />
+          One
+        </label>
+        <label>
+          <input
+            // id={enums.picked}
+            type="radio"
+            name={enums.picked}
+            value="Two"
+            onChange={formik.handleChange}
+          />
+          Two
+        </label>
+        <div>Picked: {formik.values.picked}</div>
+
+        {formik.touched[enums.picked] && formik.errors[enums.picked] ? (
+          <div>{formik.errors[enums.picked]}</div>
+        ) : null}
       </div>
 
       <button type="submit" disabled={formik.isSubmitting}>Submit</button>
