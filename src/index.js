@@ -17,6 +17,10 @@ const enums = {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function fetchNewTextC(a, b) {
+  await new Promise((r) => setTimeout(r, 500));
+  return `${enums.textA}: ${a}, ${enums.textB}: ${b}`;
+}
 
 const SignupForm = () => {
   const formik = useFormik({
@@ -58,21 +62,26 @@ const SignupForm = () => {
   
     useEffect(() => {
       // set the value of textC, based on textA and textB
-      console.log(`textA`, textA)
-      console.log(`textB`, textB)
-      console.log(`touched[enums.textA]`, touched.textA)
-      console.log(`touched[enums.textB]`, touched.textB)
+      let isCurrent = true;
+
       if (
         textA.trim() !== '' &&
         textB.trim() !== '' &&
         touched.textA &&
         touched.textB
       ) {
-        console.log('entra')
-        console.log('${enums.textA}: ${textA}, ${enums.textB}: ${textB}', `${enums.textA}: ${textA}, ${enums.textB}: ${textB}`)
-        setFieldValue(props.name, `${enums.textA}: ${textA}, ${enums.textB}: ${textB}`);
-        touched.textB = false; // TODO: refactor
+        fetchNewTextC(textA, textB).then(textC => {
+          if (!!isCurrent) {
+            // prevent setting old values
+            setFieldValue(props.name, textC);
+          }
+        });
+        // touched.textB = false; // TODO: refactor
       }
+
+      return () => {
+        isCurrent = false;
+      };
     }, [textB, textA, touched.textA, touched.textB, setFieldValue, props.name]);
   
     return (
