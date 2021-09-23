@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useFormik } from "formik";
 import * as Yup from 'yup';
@@ -10,6 +11,9 @@ const enums = {
   toggle: 'toggle',
   checked: 'checked',
   picked: 'picked',
+  textA: 'textA',
+  textB: 'textB',
+  textC: 'textC',
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -23,6 +27,9 @@ const SignupForm = () => {
       [enums.toggle]: false,
       [enums.checked]: [],
       [enums.picked]: '',
+      [enums.textA]: '',
+      [enums.textB]: '',
+      [enums.textC]: '',
     },
     validationSchema: Yup.object({
       [enums.firstName]: Yup.string()
@@ -41,6 +48,40 @@ const SignupForm = () => {
       console.log(`values`, values)
     },
   });
+
+  const MyField = props => {
+    const {
+      values: { textA, textB },
+      touched,
+      setFieldValue,
+    } = formik;
+  
+    useEffect(() => {
+      // set the value of textC, based on textA and textB
+      console.log(`textA`, textA)
+      console.log(`textB`, textB)
+      console.log(`touched[enums.textA]`, touched.textA)
+      console.log(`touched[enums.textB]`, touched.textB)
+      if (
+        textA.trim() !== '' &&
+        textB.trim() !== '' &&
+        touched.textA &&
+        touched.textB
+      ) {
+        console.log('entra')
+        console.log('${enums.textA}: ${textA}, ${enums.textB}: ${textB}', `${enums.textA}: ${textA}, ${enums.textB}: ${textB}`)
+        setFieldValue(props.name, `${enums.textA}: ${textA}, ${enums.textB}: ${textB}`);
+        touched.textB = false; // TODO: refactor
+      }
+    }, [textB, textA, touched.textA, touched.textB, setFieldValue, props.name]);
+  
+    return (
+      <>
+        <input {...props} />
+        {!!formik.touched[enums.textC] && !!formik.errors[enums.textC] && <div>{formik.errors[enums.textC]}</div>}
+      </>
+    );
+  };
 
   return (
     <form onSubmit={formik.handleSubmit}>
@@ -147,6 +188,31 @@ const SignupForm = () => {
           <div>{formik.errors[enums.picked]}</div>
         ) : null}
       </div>
+
+      <label>
+        textA
+        <input
+          id={enums.textA}
+          name={enums.textA}
+          {...formik.getFieldProps(enums.textA)}
+        />
+      </label>
+      <label>
+        textB
+        <input
+          id={enums.textB}
+          name={enums.textB}
+          {...formik.getFieldProps(enums.textB)}
+        />
+      </label>
+      <label>
+        textC
+        <MyField
+          id={enums.textC}
+          name={enums.textC}
+          {...formik.getFieldProps(enums.textC)}
+        />
+      </label>
 
       <button type="submit" disabled={formik.isSubmitting}>Submit</button>
     </form>
