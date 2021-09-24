@@ -1,6 +1,6 @@
 import ReactDOM from "react-dom";
 import { useState, useEffect } from "react";
-import { useFormik, FieldArray } from "formik";
+import { useFormik, FormikProvider, FieldArray, Field, ErrorMessage } from "formik";
 import * as Yup from 'yup';
 import "./index.css";
 
@@ -29,7 +29,7 @@ async function fetchNewTextC(a, b) {
 }
 
 const SignupForm = () => {
-  const formik = useFormik({
+  const formik = useFormik({ // useFormik use for performance and custom components
     initialValues: {
       [enums.firstName]: '',
       [enums.lastName]: '',
@@ -58,6 +58,16 @@ const SignupForm = () => {
         .max(20, 'Must be less  than 20 characters')
         .required('Username is required')
         .matches(/^[a-zA-Z0-9]+$/, 'Cannot contain special characters or spaces'),
+      [enums.friends]: Yup.array()
+        .of(
+          Yup.object({
+            name: Yup.string().min(2, 'too short').required('Required'), // these constraints take precedence
+            email: Yup.string().email('Invalid email address').required('Required'), // these constraints take precedence
+          }),
+        )
+        .required('Must have friends') // these constraints are shown if and only if inner constraints are satisfied
+        .min(1, 'Minimum of 1 friends')
+        .max(3, 'Maximum of 3 friends'),
     }),
 
     onSubmit: async (values) => {
@@ -68,12 +78,9 @@ const SignupForm = () => {
   
   const [didFocus, setDidFocus] = useState(false);
   const handleFocus = () => setDidFocus(true);
-  const showFeedback = () => {
-    console.log(`didFocus`, didFocus)
-    console.log(`formik.value`, formik.value)
-    console.log(`formik.touched`, formik.touched)
-    return (didFocus && formik.value[enums.instant].trim().length > 2) || formik.touched[enums.instant];
-  }
+  const showFeedback = () => (
+    (didFocus && formik.value[enums.instant].trim().length > 2) || formik.touched[enums.instant]
+  );
 
 
   const MyField = props => {
@@ -157,6 +164,7 @@ const SignupForm = () => {
       </label>
       
       <div role="group" aria-labelledby="checkbox-group">
+        <h5>Checkbox</h5>
         <label>
           <input
             // id={enums.checked}
@@ -194,6 +202,7 @@ const SignupForm = () => {
       </div>
 
       <div role="group" aria-labelledby="my-radio-group">
+        <h5>Radio</h5>
         <label>
           <input
             // id={enums.picked}
@@ -221,10 +230,11 @@ const SignupForm = () => {
         ) : null}
       </div>
 
+      <h5>Dependent fields</h5>
       <label>
         textA
         <input
-          id={enums.textA}
+          // id={enums.textA}
           name={enums.textA}
           {...formik.getFieldProps(enums.textA)}
         />
@@ -232,7 +242,7 @@ const SignupForm = () => {
       <label>
         textB
         <input
-          id={enums.textB}
+          // id={enums.textB}
           name={enums.textB}
           {...formik.getFieldProps(enums.textB)}
         />
@@ -240,55 +250,74 @@ const SignupForm = () => {
       <label>
         textC
         <MyField
-          id={enums.textC}
+          // id={enums.textC}
           name={enums.textC}
           {...formik.getFieldProps(enums.textC)}
         />
       </label>
 
-      {/* <FieldArray name="friends">
-        {({ insert, remove, push }) => (
-          <div>
-            {formik.values.friends.length > 0 &&
-              formik.values.friends.map((friend, index) => (
-                <div className="row" key={index}>
-                  <div className="col">
-                    <label htmlFor={`friends.${index}.name`}>Name</label>
-                    <input
-                      name={`friends.${index}.name`}
-                      placeholder="Jane Doe"
-                      type="text"
-                    />
+      <h5>FieldArray</h5>
+      {/* FieldArray only valid with formik context */}
+      <FormikProvider value={formik}>
+        <FieldArray name="friends">
+          {({ insert, remove, push }) => (
+            <div>
+              {formik.values[enums.friends].length > 0 &&
+                formik.values[enums.friends].map((friend, index) => (
+                  <div className="row" key={index}>
+                    <div className="col">
+                      <label htmlFor={`friends.${index}.name`}>Name</label>
+                      <Field
+                        name={`friends.${index}.name`}
+                        placeholder="Jane Doe"
+                        type="text"
+                      />
+                      <ErrorMessage
+                        name={`friends.${index}.name`}
+                        component="div"
+                        className="field-error"
+                      />
+                    </div>
+                    <div className="col">
+                      <label htmlFor={`friends.${index}.email`}>Email</label>
+                      <Field
+                        name={`friends.${index}.email`}
+                        placeholder="jane@acme.com"
+                        type="email"
+                      />
+                      <ErrorMessage
+                        name={`friends.${index}.email`}
+                        component="div"
+                        className="field-error"
+                      />
+                    </div>
+                    <div className="col">
+                      <button
+                        type="button"
+                        className="secondary"
+                        onClick={() => remove(index)}
+                      >
+                        X
+                      </button>
+                    </div>
                   </div>
-                  <div className="col">
-                    <label htmlFor={`friends.${index}.email`}>Email</label>
-                    <input
-                      name={`friends.${index}.email`}
-                      placeholder="jane@acme.com"
-                      type="email"
-                    />
-                  </div>
-                  <div className="col">
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => remove(index)}
-                    >
-                      X
-                    </button>
-                  </div>
-                </div>
-              ))}
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => push({ name: '', email: '' })}
-            >
-              Add Friend
-            </button>
-          </div>
-        )}
-      </FieldArray> */}
+                ))}
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => push(friends)}
+              >
+                Add Friend
+              </button>
+
+              {/* IMPORTANT typeof formik.errors[enums.friends] === 'string' for avoid crash */}
+              {formik.touched[enums.friends] && typeof formik.errors[enums.friends] === 'string' ? (
+                <div>{formik.errors[enums.friends]}</div>
+              ) : null}
+            </div>
+          )}
+        </FieldArray>
+      </FormikProvider>
 
       <div
         className={`form-control ${
