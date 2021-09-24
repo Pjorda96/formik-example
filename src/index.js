@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import ReactDOM from "react-dom";
-import { useFormik } from "formik";
+import { useState, useEffect } from "react";
+import { useFormik, FieldArray } from "formik";
 import * as Yup from 'yup';
 import "./index.css";
 
@@ -14,7 +14,13 @@ const enums = {
   textA: 'textA',
   textB: 'textB',
   textC: 'textC',
+  friends: 'friends',
+  instant: 'instant',
 }
+const friends = {
+  name: '',
+  email: '',
+};
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function fetchNewTextC(a, b) {
@@ -34,6 +40,8 @@ const SignupForm = () => {
       [enums.textA]: '',
       [enums.textB]: '',
       [enums.textC]: '',
+      [enums.friends]: [friends],
+      [enums.instant]: '',
     },
     validationSchema: Yup.object({
       [enums.firstName]: Yup.string()
@@ -45,6 +53,11 @@ const SignupForm = () => {
       [enums.email]: Yup.string().email('Invalid email address').required('Required'),
       [enums.checked]: Yup.array().min(1, 'Al menos 1').max(2, 'Como máximo 2'),
       [enums.picked]: Yup.string().required('Required'),
+      [enums.instant]: Yup.string()
+        .min(8, 'Must be at least 8 characters')
+        .max(20, 'Must be less  than 20 characters')
+        .required('Username is required')
+        .matches(/^[a-zA-Z0-9]+$/, 'Cannot contain special characters or spaces'),
     }),
 
     onSubmit: async (values) => {
@@ -52,6 +65,16 @@ const SignupForm = () => {
       console.log(`values`, values)
     },
   });
+  
+  const [didFocus, setDidFocus] = useState(false);
+  const handleFocus = () => setDidFocus(true);
+  const showFeedback = () => {
+    console.log(`didFocus`, didFocus)
+    console.log(`formik.value`, formik.value)
+    console.log(`formik.touched`, formik.touched)
+    return (didFocus && formik.value[enums.instant].trim().length > 2) || formik.touched[enums.instant];
+  }
+
 
   const MyField = props => {
     const {
@@ -222,6 +245,77 @@ const SignupForm = () => {
           {...formik.getFieldProps(enums.textC)}
         />
       </label>
+
+      {/* <FieldArray name="friends">
+        {({ insert, remove, push }) => (
+          <div>
+            {formik.values.friends.length > 0 &&
+              formik.values.friends.map((friend, index) => (
+                <div className="row" key={index}>
+                  <div className="col">
+                    <label htmlFor={`friends.${index}.name`}>Name</label>
+                    <input
+                      name={`friends.${index}.name`}
+                      placeholder="Jane Doe"
+                      type="text"
+                    />
+                  </div>
+                  <div className="col">
+                    <label htmlFor={`friends.${index}.email`}>Email</label>
+                    <input
+                      name={`friends.${index}.email`}
+                      placeholder="jane@acme.com"
+                      type="email"
+                    />
+                  </div>
+                  <div className="col">
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => remove(index)}
+                    >
+                      X
+                    </button>
+                  </div>
+                </div>
+              ))}
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => push({ name: '', email: '' })}
+            >
+              Add Friend
+            </button>
+          </div>
+        )}
+      </FieldArray> */}
+
+      <div
+        className={`form-control ${
+          showFeedback ? (formik.errors[enums.instant] ? 'invalid' : 'valid') : ''
+        }`}
+      >
+        <div className="flex items-center space-between">
+          <label htmlFor={enums.instant}>Instant change</label>{' '}
+          {showFeedback ? (
+            <div
+              id={`${enums.instant}-feedback`}
+              aria-live="polite"
+              className="feedback text-sm"
+            >
+              {formik.errors[enums.instant] ? formik.errors[enums.instant] : '✓'}
+            </div>
+          ) : null}
+        </div>
+        <input
+          aria-describedby={`${enums.instant}-feedback ${enums.instant}-help`}
+          {...formik.getFieldProps(enums.instant)}
+          onFocus={handleFocus}
+        />
+        <div className="text-xs" id={`${enums.instant}-help`} tabIndex="-1">
+          Must be 8-20 characters and cannot contain special characters.
+        </div>
+      </div>
 
       <button type="submit" disabled={formik.isSubmitting}>Submit</button>
     </form>
